@@ -1,8 +1,8 @@
+#include "iostream"
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <chrono>
 #include <fstream>
 #include <sstream>
 #include <openssl/hmac.h>
@@ -130,15 +130,27 @@ bool parse_line(const string& line, string& pmkid_to_check, string& ssid_hex, st
     return true;
 }
 
-int main() {
-    ifstream infile("../bettercap-wifi-handshakes.pmkid");
-    if (!infile) {
-        printf("File could not be opened.\n");
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <path to pmkid file> <guess mask>" << std::endl;
         return 1;
     }
-    string line;
 
-    while (getline(infile, line)) {
+    std::string pmkid_file = argv[1];
+    std::string guess_mask = argv[2];
+
+    std::ifstream infile(pmkid_file);
+    if (!infile) {
+        std::cerr << "File could not be opened: " << pmkid_file << std::endl;
+        return 1;
+    }
+
+    printf("\n[INPUT INFO]\n");
+    printf("PMKID File: %s\n", pmkid_file.c_str());
+    printf("Guess Mask: %s\n", guess_mask.c_str());
+
+    std::string line;
+    while (std::getline(infile, line)) {
         printf("\n\n------NEW NETWORK------\n");
 
         printf("\n[NETWORK INFO]\n");
@@ -158,7 +170,7 @@ int main() {
         string ssid = hex_to_string(ssid_hex);
         printf("SSID: %s\n", ssid.c_str());
 
-        vector<string> passwords = get_passwords("?d?d?d80687");
+        vector<string> passwords = get_passwords(guess_mask);
 
         auto total_start = high_resolution_clock::now();
         double total_duration = 0;
